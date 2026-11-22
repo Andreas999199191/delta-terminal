@@ -6,6 +6,7 @@ Kör: FRED_API_KEY=... python delta.py   (pip install pandas)
 """
 import html, json, os, pathlib, time, datetime as dt, urllib.request
 import pandas as pd
+import ui
 
 OUT = pathlib.Path("docs")
 OUT.mkdir(exist_ok=True)
@@ -320,43 +321,12 @@ def row(r):
             f'{spark(r["spark"])}{zbar(r["z"])}</summary>{info_panel(r)}</details>')
 
 
-PAGE = """<!doctype html><html lang="sv"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Delta-brief</title><style>
-:root{--bg:#0b0e13;--card:#141922;--line:#232a36;--fg:#e6e9ef;--mut:#8a93a3;--up:#4da3ff;--dn:#ff9a4d;--hot:#ffc233;--off:#ff5c5c;--on:#3ddc97}
-@media(prefers-color-scheme:light){:root{--bg:#f5f6f8;--card:#fff;--line:#e3e6ec;--fg:#14171c;--mut:#667085;--up:#1a6fd6;--dn:#d9660f;--hot:#e0a100;--off:#d93636;--on:#14a06a}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,sans-serif}
-main{max-width:1080px;margin:0 auto;padding:1.5rem 1rem 3rem}
-header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
-h1{font-size:1.1rem;margin:0;letter-spacing:.04em;text-transform:uppercase}.mut,small{color:var(--mut)}
-.hl{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--mut);border-radius:10px;padding:1rem 1.2rem;margin:1rem 0}
-.hl.off{border-left-color:var(--off)}.hl.on{border-left-color:var(--on)}.hl b{font-size:1.4rem;display:block}
-h2{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:1.8rem 0 .6rem}
-.reads{display:grid;gap:.5rem}.rd{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--mut);border-radius:8px;padding:.6rem .9rem}
-.rd.off{border-left-color:var(--off)}.rd.on{border-left-color:var(--on)}.rd b{display:block}
-.pills{display:flex;flex-wrap:wrap;gap:.4rem}.pill{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:.2rem .7rem;font-size:.8rem}
-.pill i{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.4rem;background:var(--on)}.pill.yes i{background:var(--off)}
-.flip{background:var(--card);border:1px solid var(--hot);border-radius:8px;padding:.5rem .9rem;margin:.4rem 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:1rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.4rem .9rem .6rem}
-.card h3{font-size:.8rem;margin:.6rem 0 .3rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.row{display:grid;grid-template-columns:minmax(0,1fr) 70px 112px 96px 70px;gap:.6rem;align-items:center;padding:.35rem 0;border-top:1px solid var(--line)}
-.vl{text-align:right;font-variant-numeric:tabular-nums}.ch{font-variant-numeric:tabular-nums;white-space:nowrap}
-.up{color:var(--up)}.dn{color:var(--dn)}.sp.u{color:var(--up)}.sp.d{color:var(--dn)}
-.zb{position:relative;height:6px;background:var(--line);border-radius:3px}.zb::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--mut)}
-.zb i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--mut)}.zb i.hot{background:var(--hot)}
-.sr>summary{list-style:none;cursor:pointer}.sr>summary::-webkit-details-marker{display:none}.sr>summary:hover{background:var(--line)}.sr .nm::before{content:"▸";margin-right:.45rem;color:var(--mut)}.sr[open] .nm::before{content:"▾"}.info{padding:.2rem 0 .8rem 1.1rem;font-size:.85rem}.info p{margin:.3rem 0}.ud{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:.5rem 0}.ud b{display:block;margin-bottom:.15rem}.ud span{color:var(--fg)}@media(max-width:560px){.ud{grid-template-columns:1fr}}
-@media(max-width:560px){.grid{grid-template-columns:1fr}.row{grid-template-columns:minmax(0,1fr) 64px 100px 60px}.sp{display:none}}
-footer{margin-top:2rem;color:var(--mut);font-size:.8rem}
-</style><main>
-<header><h1>Delta-brief</h1><span class="mut"><a class="mut" href="portfolio.html">Min portfölj →</a> · Data t.o.m. %%ASOF%%</span></header>
-<div class="hl %%TONE%%"><b>%%TITLE%%</b><span class="mut">%%SUB%%</span></div>
+PAGE = """<div class="hl %%TONE%%"><b>%%TITLE%%</b><span class="mut">%%SUB%%</span></div>
 %%FLIPS%%
 <h2>Läget i klartext</h2><div class="reads">%%READS%%</div>
 <h2>Regim</h2><div class="pills">%%REGIME%%</div>
 <h2>Alla serier <small>(klicka på en rad för förklaring. Stapeln visar hur ovanlig rörelsen är: fylld mot höger = upp, mot vänster = ner, gul = över 2 standardavvikelser)</small></h2>
-<div class="grid">%%GROUPS%%</div>
-<footer>Källa: FRED. Data är fördröjd och duger för beslut på dagar till månader, inte intradag. Tolkningarna är regelbaserade tumregler, inte rådgivning.</footer>
-</main></html>"""
+<div class="grid">%%GROUPS%%</div>"""
 
 
 def render(rows, reg, flips, asof):
@@ -372,9 +342,10 @@ def render(rows, reg, flips, asof):
         items = [R[s] for s in SERIES if s in R and SERIES[s][1] == g]
         if items:
             groups += f'<div class="card"><h3>{g}</h3>{"".join(row(r) for r in items)}</div>'
-    return (PAGE.replace("%%ASOF%%", asof).replace("%%TONE%%", tone).replace("%%TITLE%%", esc(title))
+    body = (PAGE.replace("%%TONE%%", tone).replace("%%TITLE%%", esc(title))
             .replace("%%SUB%%", esc(sub)).replace("%%FLIPS%%", fl).replace("%%READS%%", rd)
             .replace("%%REGIME%%", pills).replace("%%GROUPS%%", groups))
+    return ui.wrap("makro", "Makro", f"Data t.o.m. {asof}", body)
 
 
 def main(fetcher=fetch):
@@ -392,8 +363,8 @@ def main(fetcher=fetch):
     prev = json.loads(state_file.read_text()).get("regimes", {}) if state_file.exists() else {}
     flips = [f'{k}: {"nej → ja" if v else "ja → nej"}' for k, v in reg.items() if k in prev and prev[k] != v]
     asof = max((r["asof"] for r in rows), default=str(dt.date.today()))
-    (OUT / "index.html").write_text(render(rows, reg, flips, asof), encoding="utf-8")
-    state_file.write_text(json.dumps({"asof": asof, "regimes": reg,
+    (OUT / "makro.html").write_text(render(rows, reg, flips, asof), encoding="utf-8")
+    state_file.write_text(json.dumps({"asof": asof, "regimes": reg, "flips": flips,
                                       "rows": [{k: v for k, v in r.items() if k != "spark"} for r in rows]},
                                      ensure_ascii=False, indent=1))
     print(f"Klar. {len(rows)} serier, {len(flips)} regimbyten, {sum(abs(r['z']) >= 2 for r in rows)} ovanliga rörelser.")
