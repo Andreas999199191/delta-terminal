@@ -5,7 +5,7 @@ förändringar (z-score mot senaste året), upptäcker regimbyten sedan förra k
 och skriver docs/index.html + docs/state.json.
 Kör: pip install pandas && python delta.py
 """
-import io, json, pathlib, datetime as dt, urllib.request
+import json, os, pathlib, time, datetime as dt, urllib.request
 import pandas as pd
 
 OUT = pathlib.Path("docs")
@@ -31,13 +31,25 @@ UNIT = {"pct": "%", "bp": " bp", "pts": " p"}
 
 
 def fetch(sid):
-    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}"
-    req = urllib.request.Request(url, headers={"User-Agent": "delta-terminal/0.1"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        df = pd.read_csv(io.BytesIO(r.read()), na_values=".")
-    df.columns = ["date", "v"]
-    df["date"] = pd.to_datetime(df["date"])
-    return df.dropna().set_index("date")["v"].tail(900)
+    """Hämtar via FRED:s officiella API (gratis nyckel). Korta timeouts + omförsök."""
+    key = os.environ.get("FRED_API_KEY")
+    if not key:
+        raise SystemExit("FRED_API_KEY saknas. Skapa en gratis nyckel och lägg den som GitHub-secret.")
+    since = dt.date.today() - dt.timedelta(days=1100)
+    url = ("https://api.stlouisfed.org/fred/series/observations"
+           f"?series_id={sid}&api_key={key}&file_type=json&observation_start={since}")
+    last = None
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "delta-terminal/0.2"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                obs = json.loads(r.read())["observations"]
+            s = pd.Series({pd.Timestamp(o["date"]): float(o["value"]) for o in obs if o["value"] != "."})
+            return s.sort_index().tail(900)
+        except Exception as e:
+            last = e
+            time.sleep(2 * (attempt + 1))
+    raise last
 
 
 def change(s, n, kind):
@@ -120,6 +132,8 @@ def main(fetcher=fetch):
             data[sid] = fetcher(sid)
         except Exception as e:  # en trasig serie ska inte fälla hela briefen
             print(f"Hoppar över {sid}: {e}")
+    if len(data) < 6:  # hellre en röd körning än en tom brief
+        raise SystemExit(f"Bara {len(data)} av {len(SERIES)} serier hämtades, avbryter.")
     rows = [r for sid, s in data.items() if (r := analyse(sid, s))]
     rows.sort(key=lambda r: -abs(r["z"]))
     reg = regimes(data)
