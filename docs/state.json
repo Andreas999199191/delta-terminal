@@ -1,5 +1,121 @@
 {
- "asof": "2026-11-22",
- "regimes": {},
- "rows": []
+ "asof": "2026-11-20",
+ "regimes": {
+  "Räntekurvan är inverterad": false,
+  "Volatiliteten är hög (VIX över 80:e percentilen)": true,
+  "Kreditstress (spreadar över 80:e percentilen)": true,
+  "Aktier handlar under 200-dagarssnittet": true
+ },
+ "rows": [
+  {
+   "id": "VIXCLS",
+   "name": "VIX",
+   "group": "Risk",
+   "kind": "pts",
+   "last": 28.44,
+   "asof": "2026-11-19",
+   "h": "5d",
+   "chg": 9.740000000000002,
+   "z": 3.4547591643994484
+  },
+  {
+   "id": "SP500",
+   "name": "S&P 500",
+   "group": "Risk",
+   "kind": "pct",
+   "last": 7175.83,
+   "asof": "2026-11-19",
+   "h": "5d",
+   "chg": -5.4866708814077185,
+   "z": -3.210994624043682
+  },
+  {
+   "id": "BAMLH0A0HYM2",
+   "name": "High yield-spread",
+   "group": "Kredit",
+   "kind": "bp",
+   "last": 3.52,
+   "asof": "2026-11-19",
+   "h": "5d",
+   "chg": 31.999999999999986,
+   "z": 2.7829936037891185
+  },
+  {
+   "id": "T10YIE",
+   "name": "Inflationsförväntan 10y",
+   "group": "Inflation",
+   "kind": "bp",
+   "last": 2.15,
+   "asof": "2026-11-20",
+   "h": "5d",
+   "chg": -9.00000000000003,
+   "z": -2.2061436973300936
+  },
+  {
+   "id": "DEXSIUS",
+   "name": "SEK per USD",
+   "group": "Valuta",
+   "kind": "pct",
+   "last": 1.2882,
+   "asof": "2026-11-13",
+   "h": "5d",
+   "chg": 0.8928571428571397,
+   "z": 1.810564747694925
+  },
+  {
+   "id": "DTWEXBGS",
+   "name": "Dollarindex (bred)",
+   "group": "Valuta",
+   "kind": "pct",
+   "last": 122.6503,
+   "asof": "2026-11-13",
+   "h": "5d",
+   "chg": 0.9416811172443085,
+   "z": 1.4971277722005907
+  },
+  {
+   "id": "DCOILWTICO",
+   "name": "Olja WTI",
+   "group": "Råvaror",
+   "kind": "pct",
+   "last": 89.53,
+   "asof": "2026-11-17",
+   "h": "20d",
+   "chg": -17.017332468254697,
+   "z": -1.356580820578131
+  },
+  {
+   "id": "DGS2",
+   "name": "US 2-årsränta",
+   "group": "Räntor",
+   "kind": "bp",
+   "last": 4.76,
+   "asof": "2026-11-19",
+   "h": "5d",
+   "chg": -10.000000000000053,
+   "z": -1.2751909028624564
+  },
+  {
+   "id": "DGS10",
+   "name": "US 10-årsränta",
+   "group": "Räntor",
+   "kind": "bp",
+   "last": 5.04,
+   "asof": "2026-11-19",
+   "h": "20d",
+   "chg": -8.999999999999986,
+   "z": -0.9255087014766348
+  },
+  {
+   "id": "T10Y2Y",
+   "name": "Kurva 10y-2y",
+   "group": "Räntor",
+   "kind": "bp",
+   "last": 0.29,
+   "asof": "2026-11-20",
+   "h": "5d",
+   "chg": 1.9999999999999962,
+   "z": 0.43059544001934924
+  }
+ ]
 }
