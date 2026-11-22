@@ -17,6 +17,11 @@ jobs:
       - run: python delta.py
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      - run: python watchlist.py
+        continue-on-error: true
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
       - run: |
           git config user.name "delta-bot"
           git config user.email "delta-bot@users.noreply.github.com"
