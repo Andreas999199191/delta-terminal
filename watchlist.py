@@ -6,7 +6,8 @@ tripwires och en makrokoppling från docs/state.json (skapas av delta.py).
 """
 import html, json, os, pathlib, re, time, datetime as dt, urllib.parse, urllib.request
 import pandas as pd
-import delta  # återanvänder CSS
+import delta  # spark()
+import ui
 
 OUT = pathlib.Path("docs")
 OUT.mkdir(exist_ok=True)
@@ -118,46 +119,77 @@ def macro_notes(tags, R):
     return out
 
 
-def chip(h):
-    cls = "up" if h["chg"] > 0 else "dn"
-    return f'<div class="c {cls}{" hot" if abs(h["z"]) >= 2 else ""}">{h["chg"]:+.1f}%</div>'
+PALETTE = ["#4da3ff", "#3ddc97", "#ffc233", "#ff9a4d", "#b085ff", "#ff6b9d"]
+
+
+def pct(v, z=0.0):
+    cls = "up" if v > 0 else "dn"
+    return f'<span class="c {cls}{" hot" if abs(z) >= 2 else ""}">{v:+.1f}%</span>'
 
 
 def card(p, m):
-    head = f'<div class="nm">{esc(p["name"])} <small>{esc(p["ticker"])}{" · proxy " + esc(p["symbol"]) if p["proxy"] else ""}</small></div><div class="vl">{p["weight"]:.1f}%</div>'
+    sub = f'{esc(p["ticker"])}' + (f' · proxy {esc(p["symbol"])}' if p["proxy"] else "")
+    head = f'<div class="pt"><div><b>{esc(p["name"])}</b><small>{sub}</small></div><span class="wp">{p["weight"]:.1f}%</span></div>'
     if not m:
-        return f'<details class="sr"><summary class="hr">{head}<div class="nodata">ingen kursdata</div></summary></details>'
-    hit = [t for t in m["trips"] if t["hit"]]
+        return f'<details class="pc"><summary>{head}<div class="pm"><span class="mut">ingen kursdata</span></div></summary></details>'
+    hit = [x for x in m["trips"] if x["hit"]]
+    price = "proxy" if p["proxy"] else f'{m["last"]:,.2f} {esc(p["currency"])}'.replace(",", " ")
     rel = f'{m["rel20"]:+.1f} pp' if "rel20" in m else "–"
     v200 = f'{m["vs200"]:+.1f}%' if m["vs200"] is not None else "–"
     pl = f'{m["pl"]:+.1f}%' if "pl" in m else "–"
-    flag = f'<span class="tw">{len(hit)}</span>' if hit else ""
-    trips = "".join(f'<span class="pill {"yes" if t["hit"] else ""}"><i></i>{esc(t["label"])}</span>' for t in m["trips"])
+    flag = f'<span class="tw" title="utlösta tripwires">{len(hit)}</span>' if hit else ""
+    d1, d5, d20 = m["hz"]["1d"], m["hz"]["5d"], m["hz"]["20d"]
+    trips = "".join(f'<span class="pill {"yes" if x["hit"] else ""}"><i></i>{esc(x["label"])}</span>' for x in m["trips"])
     thesis = esc(p["thesis"]) if p["thesis"] else "Ingen tes inskriven ännu. Lägg en rad i positions.json."
-    return (f'<details class="sr"><summary class="hr">{head}{chip(m["hz"]["1d"])}{chip(m["hz"]["5d"])}{chip(m["hz"]["20d"])}'
-            f'<div class="c">{rel}</div><div class="c">{v200}</div>{delta.spark(m["spark"])}{flag}</summary>'
+    return (f'<details class="pc"><summary>{head}'
+            f'<div class="pm"><span class="px">{price}</span>{pct(d1["chg"], d1["z"])}<small>1d</small>{flag}</div>'
+            f'<div class="pk"><span>5d {pct(d5["chg"], d5["z"])}</span><span>20d {pct(d20["chg"], d20["z"])}</span><span>vs 200d <b>{v200}</b></span></div>'
+            f'{delta.spark(m["spark"], 220, 34)}</summary>'
             f'<div class="info"><p><b>Varför:</b> {thesis}</p><div class="pills">{trips}</div>'
-            f'<p class="mut">P/L mot GAV: {pl} · Från 52v-topp: {m["dd"]:+.1f}% · Volatilitet vs normalt: {m["volx"]:.1f}x · '
-            f'Relativt {esc(p["bench"] or "marknaden")} 20d: {rel} · Senast {m["asof"]}'
-            f'{" · Fond: kursen är en proxy, inte fondens egen" if p["proxy"] else ""}</p></div></details>')
+            f'<p class="mut">P/L mot GAV: {pl} · Från 52v-topp: {m["dd"]:+.1f}% · Volatilitet mot normalt: {m["volx"]:.1f}x · '
+            f'Mot {esc(p["bench"] or "marknaden")} 20d: {rel} · Senast {m["asof"]}'
+            f'{" · Kursen är en proxy, inte fondens egen" if p["proxy"] else ""}</p></div></details>')
 
 
-EXTRA_CSS = """
-.hr{display:grid;grid-template-columns:minmax(0,1.8fr) 52px 60px 60px 60px 66px 66px 96px 26px;gap:.5rem;align-items:center;padding:.4rem 0;border-top:1px solid var(--line)}
-.hr .c{text-align:right;font-variant-numeric:tabular-nums}.hr .c.hot{font-weight:700}.nodata{grid-column:span 7;color:var(--mut)}
-.hh{display:grid;grid-template-columns:minmax(0,1.8fr) 52px 60px 60px 60px 66px 66px 96px 26px;gap:.5rem;color:var(--mut);font-size:.72rem;text-transform:uppercase;padding:.2rem 0}
-.hh div:nth-child(n+2){text-align:right}.tw{background:var(--off);color:#fff;border-radius:99px;font-size:.72rem;text-align:center}
-@media(max-width:700px){.hr,.hh{grid-template-columns:minmax(0,1fr) 46px 58px 58px 26px}.hr .c:nth-of-type(1),.hr .c:nth-of-type(4),.hr .c:nth-of-type(5),.sp,.hh div:nth-child(3),.hh div:nth-child(6),.hh div:nth-child(7),.hh div:nth-child(8){display:none}}
-"""
-CSS = re.search(r"<style>(.*?)</style>", delta.PAGE, re.S).group(1) + EXTRA_CSS
-PAGE = ('<!doctype html><html lang="sv"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        "<title>Portfölj</title><style>" + CSS + "</style><main>"
-        '<header><h1>Portfölj</h1><a class="mut" href="index.html">← Makro</a></header>'
-        '<div class="hl %%TONE%%"><b>%%TITLE%%</b><span class="mut">%%SUB%%</span></div>%%FLIPS%%'
-        "<h2>Makro och dina innehav</h2><div class=\"reads\">%%NOTES%%</div>"
-        '<h2>Innehav <small>(klicka för tes, tripwires och detaljer. Vikter från %%SNAP%%)</small></h2>'
-        '<div class="card"><div class="hh"><div>Innehav</div><div>Vikt</div><div>1d</div><div>5d</div><div>20d</div><div>vs index 20d</div><div>vs 200d</div><div></div><div></div></div>%%ROWS%%</div>'
-        '<footer>Kurser: Alpaca (USA) och Yahoo (Sverige), fördröjda och inofficiella i vissa fall. Fonder visas med en proxy. Inte rådgivning.</footer></main></html>')
+def exposures(pos):
+    se = sum(p["weight"] for p in pos if p["country"] == "SE" and (p["type"] == "STOCK" or p["symbol"] == "^OMX"))
+    fund = sum(p["weight"] for p in pos if p["type"] == "FUND")
+    return se, fund
+
+
+def render_portfolio(res, pos, tone, title, sub, flips, notes, snap):
+    se, fund = exposures(pos)
+    live = [(p, m) for p, m in res if m]
+    trig_n = sum(x["hit"] for _, m in live for x in m["trips"])
+    stocks5 = sorted(((m["hz"]["5d"]["chg"], p["ticker"]) for p, m in live if not p["proxy"]), reverse=True)
+
+    def tile(label, value, cls=""):
+        return f'<div class="tile"><small>{label}</small><b class="{cls}">{value}</b></div>'
+    tiles = (tile("Innehav", str(len(pos))) + tile("Fonder", f"{fund:.0f} %") + tile("Svenskt", f"{se:.0f} %")
+             + tile("Utlösta tripwires", str(trig_n), "dn" if trig_n else "")
+             + (tile("Bäst 5d", f'{esc(stocks5[0][1])} {stocks5[0][0]:+.1f}%', "up") + tile("Sämst 5d", f'{esc(stocks5[-1][1])} {stocks5[-1][0]:+.1f}%', "dn") if stocks5 else ""))
+    sect = {}
+    for p in pos:
+        sect[p["sector"]] = sect.get(p["sector"], 0) + p["weight"]
+    order = sorted(sect.items(), key=lambda kv: -kv[1])
+    bar = "".join(f'<i style="width:{w:.1f}%;background:{PALETTE[i % 6]}" title="{esc(k)} {w:.0f}%"></i>' for i, (k, w) in enumerate(order))
+    legend = "".join(f'<span><i style="background:{PALETTE[i % 6]}"></i>{esc(k)} {w:.0f}%</span>' for i, (k, w) in enumerate(order))
+    nh = "".join(f'<div class="rd {x}"><b>{esc(a)}</b><span class="mut">{esc(b)}</span></div>' for x, a, b in notes) \
+        or '<div class="rd"><span class="mut">Inget i makrot sticker ut för dina innehav just nu.</span></div>'
+    sections = ""
+    for name, flt in (("Fonder", lambda p: p["type"] == "FUND"),
+                      ("Svenska aktier", lambda p: p["type"] == "STOCK" and p["country"] == "SE"),
+                      ("Amerikanska aktier", lambda p: p["type"] == "STOCK" and p["country"] == "US")):
+        sel = [(p, m) for p, m in res if flt(p)]
+        if sel:
+            sections += f'<h2>{name}</h2><div class="pg">{"".join(card(p, m) for p, m in sel)}</div>'
+    fl = "".join(f'<div class="flip">Förändring: {esc(f)}</div>' for f in flips)
+    body = (f'<div class="hl {tone}"><b>{esc(title)}</b><span class="mut">{esc(sub)}</span></div>{fl}'
+            f'<h2>Översikt</h2><div class="tiles">{tiles}</div>'
+            f'<h2>Fördelning <small>(per sektor, vikter från {snap})</small></h2><div class="alloc">{bar}</div><div class="lg">{legend}</div>'
+            f'<h2>Makro och dina innehav</h2><div class="reads">{nh}</div>{sections}'
+            '<p class="mut" style="margin-top:1.5rem">Klicka på ett kort för tes, tripwires och detaljer. Fonder visas med en proxy eftersom fondernas egna kurser inte finns gratis.</p>')
+    return ui.wrap("portfolio", "Portfölj", "Kurser från Alpaca och Yahoo", body)
 
 
 def main(fa=fetch_alpaca, fy=fetch_yahoo):
@@ -188,18 +220,7 @@ def main(fa=fetch_alpaca, fy=fetch_yahoo):
     st = OUT / "state.json"
     R = {r["id"]: r for r in json.loads(st.read_text()).get("rows", [])} if st.exists() else {}
     notes = macro_notes({p["sector"] for p in pos}, R)
-    nh = "".join(f'<div class="rd {t}"><b>{esc(a)}</b><span class="mut">{esc(b)}</span></div>' for t, a, b in notes) \
-        or '<div class="rd"><span class="mut">Inget i makrot sticker ut för dina innehav just nu.</span></div>'
-    rows_html = ""
-    for title_, flt in (("Svenska aktier", lambda p: p["type"] == "STOCK" and p["country"] == "SE"),
-                        ("Amerikanska aktier", lambda p: p["type"] == "STOCK" and p["country"] == "US"),
-                        ("Fonder", lambda p: p["type"] == "FUND")):
-        sel = [(p, m) for p, m in res if flt(p)]
-        if sel:
-            rows_html += f'<h3 style="margin:.9rem 0 .2rem;font-size:.8rem;color:var(--mut)">{title_}</h3>' + "".join(card(p, m) for p, m in sel)
-    page = (PAGE.replace("%%TONE%%", tone).replace("%%TITLE%%", esc(title)).replace("%%SUB%%", esc(sub))
-            .replace("%%FLIPS%%", "".join(f'<div class="flip">Förändring: {esc(f)}</div>' for f in flips))
-            .replace("%%NOTES%%", nh).replace("%%ROWS%%", rows_html).replace("%%SNAP%%", cfg["snapshot"]))
+    page = render_portfolio(res, pos, tone, title, sub, flips, notes, cfg["snapshot"])
     (OUT / "portfolio.html").write_text(page, encoding="utf-8")
     print(f"Klar. {sum(1 for _, m in res if m)}/{len(pos)} innehav med data, {len(trig)} tripwires utlösta.")
 
