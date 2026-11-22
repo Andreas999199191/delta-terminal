@@ -48,6 +48,89 @@ FREQ = {  # horisonter, lookback (obs), min historik, hämtningsfönster (dagar)
 }
 UNIT = {"pct": "%", "bp": " bp", "pts": " p"}
 
+# vad är det, vad händer när den går upp, vad händer när den går ner
+INFO = {
+    "SP500": ("Index över 500 stora amerikanska bolag, det vanligaste måttet på hur aktiemarknaden mår.",
+              "Bra för aktieägare. Speglar ofta förväntad vinsttillväxt och lägre risk. Snabba uppgångar utan stöd från kredit kan vara sköra.",
+              "Dåligt för aktieägare. Faller ofta när tillväxtoro, högre räntor eller ökad risk slår igenom. Stora fall kan smitta av sig på konsumtion och finansiering."),
+    "NASDAQCOM": ("Teknik- och tillväxttungt index, känsligare för räntor än S&P 500.",
+                  "Ökad riskaptit och tillväxttro, ofta när räntorna faller.",
+                  "Ofta ränteuppgång eller minskad riskvilja. Tillväxtbolag drabbas hårdare än breda index."),
+    "VIXCLS": ("Förväntad volatilitet i S&P 500 de närmaste 30 dagarna, ofta kallat rädslomåttet.",
+               "Oro på marknaden, dåligt för aktier på kort sikt. VIX och aktiefall följs ofta åt.",
+               "Lugn och lägre riskpremie, bra för aktier. Mycket låg VIX kan dock tyda på självbelåtenhet."),
+    "BAMLH0A0HYM2": ("Extra ränta som företag med låg kreditvärdighet måste betala över statsräntan.",
+                     "Investerare kräver mer betalt för risk. Varnar för sämre konjunktur och fler konkurser. Dåligt för riskfyllda tillgångar och för bolag som behöver refinansiera.",
+                     "Ökat förtroende och billigare finansiering, bra för risktillgångar. Mycket låga spreadar ger litet utrymme för felsteg."),
+    "BAMLC0A0CM": ("Samma sak som high yield, fast för företag med hög kreditvärdighet.",
+                   "Oron når även de säkra bolagen, vilket tyder på bredare finansiell stress.",
+                   "Gynnsamma finansieringsvillkor för stora företag."),
+    "DFF": ("Federal Reserves styrränta, priset på kortfristiga pengar.",
+            "Dyrare lån och åtstramning. Bromsar ekonomi och inflation, pressar ofta tillväxtaktier och bostäder, gynnar sparare.",
+            "Billigare lån och stimulans, ofta bra för aktier och bostäder. Kan också betyda att ekonomin har försvagats."),
+    "DTB3": ("Ränta på 3 månaders statsskuldväxlar, följer marknadens syn på styrräntan.",
+             "Marknaden räknar med högre styrränta.",
+             "Marknaden räknar med sänkningar, eller flyr till säkerhet."),
+    "DGS2": ("Ränta på 2-åriga statsobligationer, den som känner av Feds förväntade bana mest.",
+             "Marknaden prisar in högre eller längre kvarvarande styrränta, ofta efter stark data eller hög inflation.",
+             "Marknaden prisar in sänkningar, ofta för att tillväxten ser svagare ut."),
+    "DGS10": ("Riktränta för lån och för hur långsiktiga tillgångar värderas. Styr bland annat bolåneräntor.",
+              "Dyrare finansiering och lägre värdering av framtida vinster, särskilt för tillväxtbolag. Pressar ofta både aktier och obligationspriser. Bra för den som köper nya obligationer.",
+              "Lättare villkor och stöd för värdering och bostäder. Om fallet beror på oro är det i stället en varningssignal."),
+    "DGS30": ("Den långa räntan, speglar långsiktig inflation och statsfinanser.",
+              "Oro för inflation eller statsskuld (högre term premium). Tryck på långa tillgångar.",
+              "Lägre långsiktiga förväntningar på inflation och tillväxt, eller flykt till säkerhet."),
+    "T10Y2Y": ("Skillnaden mellan 10- och 2-årsränta, en klassisk konjunkturindikator.",
+               "Kurvan brantar. Efter en inversion kommer det ofta när marknaden prisar in sänkningar eller när lågkonjunkturen närmar sig.",
+               "Kurvan planar ut eller inverteras: marknaden prisar in tight politik och svagare tillväxt. Inversion har historiskt föregått de flesta amerikanska lågkonjunkturer, men med lång och osäker fördröjning."),
+    "T10Y3M": ("Skillnaden mellan 10-årsränta och 3-månadersränta, den kurva som oftast används för recessionsrisk.",
+               "Kurvan brantar. Nära en lågkonjunktur kan det betyda att marknaden väntar sig snabba sänkningar.",
+               "Planare eller inverterad kurva: tight penningpolitik och ökad recessionsrisk framåt."),
+    "MORTGAGE30US": ("Genomsnittlig 30-årig bolåneränta i USA (Freddie Mac), veckodata.",
+                     "Dyrare att köpa bostad. Dämpar bostadsmarknad och byggande. Bra för sparare.",
+                     "Stimulerar bostadsmarknad och omfinansiering."),
+    "DFII10": ("Realränta: 10-årsräntan justerad för inflation, det verkliga priset på pengar.",
+               "Tightare finansiella villkor. Pressar värdering av aktier (särskilt tillväxt) och guld.",
+               "Lättare villkor och stöd för riskfyllda tillgångar."),
+    "T10YIE": ("Break-even-inflation: vad marknaden förväntar sig för inflation de närmaste 10 åren.",
+               "Högre förväntad inflation. Ökar trycket på centralbanken att strama åt, följer ofta oljepriset. Gynnar realtillgångar, drabbar nominella obligationer.",
+               "Lägre inflations- eller tillväxtförväntningar. Gynnar obligationer men kan tyda på svag efterfrågan."),
+    "T5YIFR": ("Förväntad inflation 5 år framåt, räknat från om 5 år. Ett mått på hur väl inflationsförväntningarna är förankrade.",
+               "Förväntningarna lossnar från målet (cirka 2 %). Ett problem för centralbanken.",
+               "Förväntningar under målet, kan tyda på deflationsoro."),
+    "ICSA": ("Antal nya ansökningar om arbetslöshetsersättning i USA per vecka, en snabb indikator på arbetsmarknaden.",
+             "Fler uppsägningar, en tidig varning för svagare konjunktur. Enstaka veckor kan vara brus, till exempel kring högtider.",
+             "Stark arbetsmarknad, bra för konsumtion. Kan samtidigt hålla räntorna uppe."),
+    "UNRATE": ("Andelen arbetslösa i USA, månadsdata.",
+               "Svagare ekonomi. En snabb ökning (cirka 0,5 procentenheter) har historiskt sammanfallit med lågkonjunktur. Kan leda till räntesänkningar.",
+               "Starkare arbetsmarknad, bra för konsumtion men kan driva på löneinflation."),
+    "NFCI": ("Chicago Feds index för finansiella villkor (kredit, risk, hävstång). Noll är genomsnitt.",
+             "Strammare villkor (över 0): dyrare och svårare att få finansiering, dåligt för tillväxt.",
+             "Lättare villkor (under 0): gynnsamt för risktillgångar och tillväxt."),
+    "WALCL": ("Totala tillgångar på Federal Reserves balansräkning, ett mått på hur mycket likviditet centralbanken tillför.",
+              "Fed köper tillgångar (QE) och tillför likviditet, vilket stödjer tillgångspriser.",
+              "Fed krymper balansräkningen (QT) och drar undan likviditet, vilket kan pressa risktillgångar."),
+    "DTWEXBGS": ("Dollarn mot en bred korg av USA:s handelspartners valutor.",
+                 "Åtstramar globala finansiella villkor. Dåligt för råvaror, tillväxtmarknader och dollarskuldsatta utanför USA. Pressar amerikanska exportbolags utlandsvinster.",
+                 "Lättare globala villkor. Stöd för råvaror och tillväxtmarknader."),
+    "DEXSIUS": ("Hur många svenska kronor en dollar kostar.",
+                "Kronan försvagas. Dyrare import och dyrare att köpa dollartillgångar (till exempel amerikanska aktier), ökat inflationstryck i Sverige. Gynnar exportbolag och dig som redan äger dollartillgångar.",
+                "Kronan stärks. Billigare import och lägre inflation, men dollartillgångar tappar värde i kronor och exportörer pressas."),
+    "DEXUSEU": ("Hur många dollar en euro kostar.",
+                "Euron stärks och dollarn försvagas. Lättare globala villkor, men pressar europeiska exportörer.",
+                "Euron försvagas och dollarn stärks. Motsatt effekt: strängare globala villkor, stöd för europeisk export."),
+    "DCOILWTICO": ("Priset på amerikansk råolja (WTI).",
+                   "Dyrare energi: högre inflation och svagare konsumtion. Bra för oljebolag och producentländer, dåligt för transport, industri och konsumenter.",
+                   "Lättar inflationen och gynnar konsumenter, men drabbar oljebolag. Om fallet beror på svag efterfrågan är det en varningssignal."),
+    "DCOILBRENTEU": ("Internationell oljeprisreferens (Nordsjön), används för det mesta av världens olja.",
+                     "Dyrare energi, högre inflation, bra för producenter.",
+                     "Billigare energi och lägre inflation, men sämre för producenter."),
+    "DHHNGSP": ("Priset på naturgas i USA (Henry Hub).",
+                "Dyrare uppvärmning, el och industriinsatser. Bra för gasproducenter.",
+                "Billigare energi och lägre kostnader. Sämre för gasproducenter."),
+}
+
+
 
 def fetch(sid):
     key = os.environ.get("FRED_API_KEY")
@@ -216,15 +299,25 @@ def zbar(z):
     return f'<div class="zb"><i class="{"hot" if abs(z) >= 2 else ""}" style="width:{w:.0f}%;{pos}"></i></div>'
 
 
+def info_panel(r):
+    what, up, dn = INFO.get(r["id"], ("", "", ""))
+    now = " · ".join(f'{h} {v["chg"]:+.1f}{UNIT[r["kind"]]} (z {v["z"]:+.1f})' for h, v in r["hz"].items())
+    return (f'<div class="info"><p>{esc(what)}</p>'
+            f'<div class="ud"><div><b class="up">▲ Går upp</b><span>{esc(up)}</span></div>'
+            f'<div><b class="dn">▼ Går ner</b><span>{esc(dn)}</span></div></div>'
+            f'<p class="mut">Just nu: {esc(now)}. z är hur många standardavvikelser rörelsen ligger från det normala senaste tiden. '
+            f'Vad som är bra eller dåligt beror på sammanhanget, så läs det som tumregler.</p></div>')
+
+
 def row(r):
     arrow = "▲" if r["chg"] > 0 else "▼" if r["chg"] < 0 else "–"
     cls = "up" if r["chg"] > 0 else "dn"
     fq = {"d": "dagsdata", "w": "veckodata", "m": "månadsdata"}[r["freq"]]
-    return (f'<div class="row"><div class="nm" title="{fq}, senast {r["asof"]}">{esc(r["name"])}'
+    return (f'<details class="sr"><summary class="row"><div class="nm" title="{fq}, senast {r["asof"]}">{esc(r["name"])}'
             f'{"" if r["freq"] == "d" else f" <small>{fq}</small>"}</div>'
             f'<div class="vl">{fmt(r)}</div>'
             f'<div class="ch {cls}">{arrow} {r["chg"]:+.1f}{UNIT[r["kind"]]} <small>/{r["h"]}</small></div>'
-            f'{spark(r["spark"])}{zbar(r["z"])}</div>')
+            f'{spark(r["spark"])}{zbar(r["z"])}</summary>{info_panel(r)}</details>')
 
 
 PAGE = """<!doctype html><html lang="sv"><meta charset="utf-8">
@@ -251,6 +344,7 @@ h2{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08
 .up{color:var(--up)}.dn{color:var(--dn)}.sp.u{color:var(--up)}.sp.d{color:var(--dn)}
 .zb{position:relative;height:6px;background:var(--line);border-radius:3px}.zb::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--mut)}
 .zb i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--mut)}.zb i.hot{background:var(--hot)}
+.sr>summary{list-style:none;cursor:pointer}.sr>summary::-webkit-details-marker{display:none}.sr>summary:hover{background:var(--line)}.sr .nm::before{content:"▸";margin-right:.45rem;color:var(--mut)}.sr[open] .nm::before{content:"▾"}.info{padding:.2rem 0 .8rem 1.1rem;font-size:.85rem}.info p{margin:.3rem 0}.ud{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:.5rem 0}.ud b{display:block;margin-bottom:.15rem}.ud span{color:var(--fg)}@media(max-width:560px){.ud{grid-template-columns:1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.row{grid-template-columns:minmax(0,1fr) 64px 100px 60px}.sp{display:none}}
 footer{margin-top:2rem;color:var(--mut);font-size:.8rem}
 </style><main>
@@ -259,7 +353,7 @@ footer{margin-top:2rem;color:var(--mut);font-size:.8rem}
 %%FLIPS%%
 <h2>Läget i klartext</h2><div class="reads">%%READS%%</div>
 <h2>Regim</h2><div class="pills">%%REGIME%%</div>
-<h2>Alla serier <small>(stapeln visar hur ovanlig rörelsen är: fylld mot höger = upp, mot vänster = ner, gul = över 2 standardavvikelser)</small></h2>
+<h2>Alla serier <small>(klicka på en rad för förklaring. Stapeln visar hur ovanlig rörelsen är: fylld mot höger = upp, mot vänster = ner, gul = över 2 standardavvikelser)</small></h2>
 <div class="grid">%%GROUPS%%</div>
 <footer>Källa: FRED. Data är fördröjd och duger för beslut på dagar till månader, inte intradag. Tolkningarna är regelbaserade tumregler, inte rådgivning.</footer>
 </main></html>"""
