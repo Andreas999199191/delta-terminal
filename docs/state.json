@@ -8,6 +8,7 @@
   "Finansiella villkor åtstramade (NFCI över 0)": false,
   "Hög realränta (över 2 %)": true
  },
+ "flips": [],
  "rows": [
   {
    "id": "SP500",
