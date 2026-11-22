@@ -348,7 +348,7 @@ h2{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08
 @media(max-width:560px){.grid{grid-template-columns:1fr}.row{grid-template-columns:minmax(0,1fr) 64px 100px 60px}.sp{display:none}}
 footer{margin-top:2rem;color:var(--mut);font-size:.8rem}
 </style><main>
-<header><h1>Delta-brief</h1><span class="mut">Data t.o.m. %%ASOF%%</span></header>
+<header><h1>Delta-brief</h1><span class="mut"><a class="mut" href="portfolio.html">Min portfölj →</a> · Data t.o.m. %%ASOF%%</span></header>
 <div class="hl %%TONE%%"><b>%%TITLE%%</b><span class="mut">%%SUB%%</span></div>
 %%FLIPS%%
 <h2>Läget i klartext</h2><div class="reads">%%READS%%</div>
