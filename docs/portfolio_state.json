@@ -33,7 +33,7 @@
   "AXP: Under 200-dagarssnittet": true,
   "AXP: Faller mer än 8 % på 5 dagar": false,
   "AXP: Volatiliteten 2x normalt": false,
-  "ATCO B: Under 200-dagarssnittet": false,
+  "ATCO B: Under 200-dagarssnittet": true,
   "ATCO B: Faller mer än 8 % på 5 dagar": false,
   "ATCO B: Volatiliteten 2x normalt": false
  }
