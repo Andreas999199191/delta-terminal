@@ -18,7 +18,7 @@
   "SEB A: Under 200-dagarssnittet": false,
   "SEB A: Faller mer än 8 % på 5 dagar": false,
   "SEB A: Volatiliteten 2x normalt": false,
-  "NDA SE: Under 200-dagarssnittet": false,
+  "NDA SE: Under 200-dagarssnittet": true,
   "NDA SE: Faller mer än 8 % på 5 dagar": false,
   "NDA SE: Volatiliteten 2x normalt": false,
   "JPM: Under 200-dagarssnittet": true,
